@@ -16,6 +16,7 @@ import androidx.compose.material.icons.rounded.ArrowForward
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -25,24 +26,29 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             RecipeAppTheme {
-                val navController = rememberNavController()
-                NavHost(
-                    navController = navController,
-                    startDestination = "recipes"
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colors.background
                 ) {
-                    composable("recipes") {
-                        RecipesScreen(
-                            onNavigateToRecipe = { navController.navigate("recipe") },
-                            recipes = arrayOf<Recipe>(
-                                Recipe(
-                                    name = "2 Wings",
-                                    body = "Hey, take a look at Jetpack Compose, it's great!",
-                                    tags = arrayOf<String>("Chicken", "Apps", "Party")
+                    val navController = rememberNavController()
+                    NavHost(
+                        navController = navController,
+                        startDestination = "recipes"
+                    ) {
+                        composable("recipes") {
+                            RecipesScreen(
+                                onNavigateToRecipe = { navController.navigate("recipe") },
+                                recipes = arrayOf<Recipe>(
+                                    Recipe(
+                                        name = "2 Wings",
+                                        body = "Hey, take a look at Jetpack Compose, it's great!",
+                                        tags = arrayOf<String>("Chicken", "Apps", "Party")
+                                    )
                                 )
                             )
-                        )
+                        }
+                        composable("recipe") { RecipeScreen(navController = navController) }
                     }
-                    composable("recipe") { RecipeActivity() }
                 }
             }
         }
@@ -51,13 +57,21 @@ class MainActivity : ComponentActivity() {
 
     data class Recipe(val name: String, val body: String, val tags: Array<String>)
 
+    @Composable
+    fun RecipeScreen(navController: NavController) {
+        Column() {
+            
+        }
+        Text(text = "Hello!")
+        TextField(value = "test", onValueChange = {println("test")})
+    }
 
     @Composable
     fun RecipesScreen(onNavigateToRecipe: () -> Unit, recipes: Array<Recipe>) {
         Column() {
             for (recipe in recipes) {
                 RecipeCard(
-                    onNavigateToRecipe = { onNavigateToRecipe },
+                    onNavigateToRecipe = onNavigateToRecipe,
                     Recipe(
                         name = recipe.name,
                         body = recipe.body,
