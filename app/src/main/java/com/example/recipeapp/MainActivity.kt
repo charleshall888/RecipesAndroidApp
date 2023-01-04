@@ -3,16 +3,18 @@ package com.example.recipeapp
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.example.recipeapp.ui.theme.RecipeAppTheme
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.ArrowForward
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -22,32 +24,35 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 
 class MainActivity : ComponentActivity() {
+    private var recipeId: Int = 0
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             RecipeAppTheme {
                 Surface(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState()),
                     color = MaterialTheme.colors.background
                 ) {
+                    val recipes = Recipes();
                     val navController = rememberNavController()
                     NavHost(
-                        navController = navController,
-                        startDestination = "recipes"
+                        navController = navController, startDestination = "recipes"
                     ) {
+
                         composable("recipes") {
                             RecipesScreen(
-                                onNavigateToRecipe = { navController.navigate("recipe") },
-                                recipes = arrayOf<Recipe>(
-                                    Recipe(
-                                        name = "2 Wings",
-                                        body = "Hey, take a look at Jetpack Compose, it's great!",
-                                        tags = arrayOf<String>("Chicken", "Apps", "Party")
-                                    )
-                                )
+                                navController,
+                                recipes = recipes
                             )
                         }
-                        composable("recipe") { RecipeScreen(navController = navController) }
+                        composable("recipe") {
+                            RecipeScreen(
+                                navController = navController, recipe = recipes.recipes[recipeId].second
+                            )
+                        }
                     }
                 }
             }
@@ -55,29 +60,78 @@ class MainActivity : ComponentActivity() {
 
     }
 
-    data class Recipe(val name: String, val body: String, val tags: Array<String>)
 
     @Composable
-    fun RecipeScreen(navController: NavController) {
+    fun RecipeScreen(navController: NavController, recipe: Recipe) {
         Column() {
-            
+            Box() {
+                Image(
+                    painter = painterResource(R.drawable.chickenwing),
+                    contentDescription = "Recipe Picture",
+                    modifier = Modifier
+                        // Clip image to be shaped as a circle
+                        .clip(
+                            RoundedCornerShape(
+                                bottomStart = 12.dp, topEnd = 0.dp, bottomEnd = 12.dp
+                            )
+                        )
+                        .border(
+                            1.5.dp, MaterialTheme.colors.primaryVariant, RoundedCornerShape(
+                                bottomStart = 12.dp, topEnd = 0.dp, bottomEnd = 12.dp
+                            )
+                        )
+                )
+                Button(onClick = { navController.navigate("recipes") }) {
+                    Icon(
+                        Icons.Rounded.ArrowBack,
+                        contentDescription = "Back to Recipes",
+                        tint = MaterialTheme.colors.primaryVariant,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = recipe.name,
+                style = MaterialTheme.typography.h5,
+                color = MaterialTheme.colors.primaryVariant
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Row() {
+                for (tag in recipe.tags) {
+                    Card() {
+                        Text(
+                            text = "+$tag", color = MaterialTheme.colors.secondaryVariant
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(4.dp))
+                }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            var description by remember { mutableStateOf(recipe.description) }
+            TextField(
+                value = description,
+                onValueChange = {  description = it},
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(600.dp)
+            )
         }
-        Text(text = "Hello!")
-        TextField(value = "test", onValueChange = {println("test")})
+
     }
 
     @Composable
-    fun RecipesScreen(onNavigateToRecipe: () -> Unit, recipes: Array<Recipe>) {
-        Column() {
-            for (recipe in recipes) {
+    fun RecipesScreen(navController: NavController, recipes: Recipes) {
+        Column {
+            for (r in recipes.recipes) {
+                val recipe = r.second
                 RecipeCard(
-                    onNavigateToRecipe = onNavigateToRecipe,
-                    Recipe(
-                        name = recipe.name,
-                        body = recipe.body,
-                        tags = recipe.tags
+                    navController, Recipe(
+                        id = recipe.id, name = recipe.name, description = recipe.description, tags = recipe.tags
                     )
                 )
+                Divider(thickness = 5.dp)
             }
         }
     }
@@ -85,14 +139,16 @@ class MainActivity : ComponentActivity() {
 
     @OptIn(ExperimentalMaterialApi::class)
     @Composable
-    fun RecipeCard(onNavigateToRecipe: () -> Unit, recipe: Recipe) {
+    fun RecipeCard(navController: NavController, recipe: Recipe) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(70.dp),
-            onClick = onNavigateToRecipe
+            onClick = {this.recipeId = recipe.id;
+                navController.navigate("recipe")}
 
-        ) {
+        )
+        {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -114,7 +170,8 @@ class MainActivity : ComponentActivity() {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .fillMaxHeight(), horizontalArrangement = Arrangement.SpaceBetween
+                        .fillMaxHeight(),
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
 
 
@@ -139,8 +196,8 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                     Column(
-                        modifier = Modifier
-                            .fillMaxHeight(), verticalArrangement = Arrangement.Center
+                        modifier = Modifier.fillMaxHeight(),
+                        verticalArrangement = Arrangement.Center
                     ) {
                         Icon(
                             Icons.Rounded.ArrowForward,
