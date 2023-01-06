@@ -19,9 +19,11 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.ArrowForward
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -75,6 +77,7 @@ class MainActivity : ComponentActivity() {
         var imageUri by remember { mutableStateOf<Uri?>(recipe.imageUri) }
         val context = LocalContext.current
         var bitmap: Bitmap
+        var editMode = false;
 
         val launcher =
             rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri: Uri? ->
@@ -125,13 +128,27 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                 }
-                Button(onClick = { navController.navigate("recipes") }) {
-                    Icon(
-                        Icons.Rounded.ArrowBack,
-                        contentDescription = "Back to Recipes",
-                        tint = MaterialTheme.colors.primaryVariant,
-                        modifier = Modifier.size(32.dp)
-                    )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Button(onClick = { navController.navigate("recipes") }) {
+                        Icon(
+                            Icons.Rounded.ArrowBack,
+                            contentDescription = "Back to Recipes",
+                            tint = Color.White,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
+                    Button(onClick = { editMode = true }) {
+                        Icon(
+                            Icons.Rounded.Edit,
+                            contentDescription = "Edit Mode",
+                            tint = Color.White,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
                 }
             }
             Spacer(modifier = Modifier.width(8.dp))
@@ -146,18 +163,7 @@ class MainActivity : ComponentActivity() {
                     .fillMaxWidth(),
                 textStyle = MaterialTheme.typography.h5
             )
-            Spacer(modifier = Modifier.height(4.dp))
 
-            Row() {
-                for (tag in recipe.tags) {
-                    Card() {
-                        Text(
-                            text = "+$tag", color = MaterialTheme.colors.secondaryVariant
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(4.dp))
-                }
-            }
             Spacer(modifier = Modifier.height(8.dp))
             var description by remember { mutableStateOf(recipe.description) }
             TextField(
@@ -184,7 +190,6 @@ class MainActivity : ComponentActivity() {
                         id = recipe.id,
                         name = recipe.name,
                         description = recipe.description,
-                        tags = recipe.tags,
                         imageUri = recipe.imageUri
                     )
                 )
@@ -244,25 +249,15 @@ class MainActivity : ComponentActivity() {
                 ) {
 
 
-                    Column(verticalArrangement = Arrangement.SpaceBetween) {
+                    Column(
+                        modifier = Modifier.fillMaxHeight(),
+                        verticalArrangement = Arrangement.Center
+                    ) {
                         Text(
                             text = recipe.name,
                             style = MaterialTheme.typography.h5,
                             color = MaterialTheme.colors.primaryVariant
                         )
-                        Spacer(modifier = Modifier.height(4.dp))
-
-                        Row() {
-                            for (tag in recipe.tags) {
-                                Card() {
-                                    Text(
-                                        text = "+$tag",
-                                        color = MaterialTheme.colors.secondaryVariant
-                                    )
-                                }
-                                Spacer(modifier = Modifier.width(4.dp))
-                            }
-                        }
                     }
                     Column(
                         modifier = Modifier.fillMaxHeight(),
