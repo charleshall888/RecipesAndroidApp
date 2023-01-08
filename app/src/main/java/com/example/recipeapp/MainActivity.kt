@@ -19,6 +19,7 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.ArrowForward
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -73,11 +74,12 @@ class MainActivity : ComponentActivity() {
 
 
     @Composable
-    fun RecipeScreen(navController: NavController, recipe: Recipe) {
+    fun RecipeScreen(navController: NavController, recipe: Recipe, isEditMode: Boolean = false) {
         var imageUri by remember { mutableStateOf<Uri?>(recipe.imageUri) }
         val context = LocalContext.current
         var bitmap: Bitmap
-        var editMode = false;
+
+        var editMode by remember { mutableStateOf<Boolean?>(isEditMode) }
 
         val launcher =
             rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri: Uri? ->
@@ -114,17 +116,8 @@ class MainActivity : ComponentActivity() {
                                         bottomEnd = 12.dp
                                     )
                                 )
-                                .border(
-                                    1.5.dp,
-                                    MaterialTheme.colors.primaryVariant,
-                                    RoundedCornerShape(
-                                        bottomStart = 12.dp,
-                                        topEnd = 0.dp,
-                                        bottomEnd = 12.dp
-                                    )
-                                )
                                 .height(300.dp)
-                                .clickable { launcher.launch("image/*") }
+                                .clickable { if(editMode == true) launcher.launch("image/*") }
                         )
                     }
                 }
@@ -133,7 +126,15 @@ class MainActivity : ComponentActivity() {
                         .fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Button(onClick = { navController.navigate("recipes") }) {
+                    Button(onClick = { navController.navigate("recipes") },                 modifier = Modifier
+                        // Clip image to be shaped as a circle
+                        .clip(
+                            RoundedCornerShape(
+                                bottomStart = 12.dp,
+                                topEnd = 0.dp,
+                                bottomEnd = 12.dp
+                            )
+                        ) ) {
                         Icon(
                             Icons.Rounded.ArrowBack,
                             contentDescription = "Back to Recipes",
@@ -141,9 +142,14 @@ class MainActivity : ComponentActivity() {
                             modifier = Modifier.size(32.dp)
                         )
                     }
-                    Button(onClick = { editMode = true }) {
+                    if(editMode == true) {
+                        Button(onClick = { launcher.launch("image/*") }) {
+                            Text("Upload Image")
+                        }
+                    }
+                    Button(onClick = { editMode = !editMode!! }) {
                         Icon(
-                            Icons.Rounded.Edit,
+                            if(editMode == true) Icons.Rounded.Check else Icons.Rounded.Edit,
                             contentDescription = "Edit Mode",
                             tint = Color.White,
                             modifier = Modifier.size(32.dp)
@@ -153,19 +159,29 @@ class MainActivity : ComponentActivity() {
             }
             Spacer(modifier = Modifier.width(8.dp))
             var name by remember { mutableStateOf(recipe.name) }
-            TextField(
-                value = name,
-                onValueChange = {
-                    name = it;
-                    recipe.name = name
-                },
-                modifier = Modifier
-                    .fillMaxWidth(),
-                textStyle = MaterialTheme.typography.h5
-            )
+            if(editMode == true){
+                TextField(
+                    value = name,
+                    onValueChange = {
+                        name = it;
+                        recipe.name = name
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    textStyle = MaterialTheme.typography.h5
+                )
+            } else {
+                Text(
+                    text = name,
+                    style = MaterialTheme.typography.h5,
+                    color = MaterialTheme.colors.primaryVariant,
+                    modifier = Modifier.padding(horizontal = 12.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
             var description by remember { mutableStateOf(recipe.description) }
+            if(editMode == true){
             TextField(
                 value = description,
                 onValueChange = {
@@ -176,6 +192,12 @@ class MainActivity : ComponentActivity() {
                     .fillMaxWidth()
                     .height(600.dp)
             )
+        } else {
+            Text(
+                text = description,
+                modifier = Modifier.padding(horizontal = 12.dp)
+            )
+        }
         }
 
     }

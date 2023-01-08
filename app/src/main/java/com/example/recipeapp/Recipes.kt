@@ -18,7 +18,7 @@ class Recipes {
             imageUri = Uri.parse("android.resource://com.example.recipeapp/drawable/chocolatemilkshake")
         ),
         "recipe" to Recipe(
-            id = 0,
+            id = 1,
             name = "Strawberry Milkshake",
             description = "2 pumps of strawberry jam" +
                     "\nMilkshake base to red line" +
@@ -30,7 +30,7 @@ class Recipes {
             imageUri = Uri.parse("android.resource://com.example.recipeapp/drawable/strawberrymilkshake")
         ),
         "recipe" to Recipe(
-            id = 0,
+            id = 2,
             name = "Cookie&Cream Milkshake",
             description = "2 scoops of cookie crumbles" +
                     "\nMilkshake base to red line" +
@@ -42,7 +42,7 @@ class Recipes {
             imageUri = Uri.parse("android.resource://com.example.recipeapp/drawable/ccmilkshake")
         ),
         "recipe" to Recipe(
-            id = 0,
+            id = 3,
             name = "Vanilla Milkshake",
             description = "Milkshake base to red line" +
                     "\nIcedream to top" +
@@ -53,7 +53,7 @@ class Recipes {
             imageUri = Uri.parse("android.resource://com.example.recipeapp/drawable/vanillamilkshake")
         ),
         "recipe" to Recipe(
-            id = 0,
+            id = 4,
             name = "Cookie Crumble Shake",
             description = "1 Chocolate Chip cookie crumbled finely" +
                     "\nMilkshake base to red line" +
