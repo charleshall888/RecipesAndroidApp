@@ -14,9 +14,11 @@ import androidx.compose.foundation.*
 import androidx.compose.ui.Modifier
 import com.example.recipeapp.ui.theme.RecipeAppTheme
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement.End
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.ArrowForward
 import androidx.compose.material.icons.rounded.Check
@@ -28,6 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
@@ -37,6 +40,7 @@ import androidx.navigation.compose.rememberNavController
 
 class MainActivity : ComponentActivity() {
     private var recipeId: Int = 0
+    private var isNewRecipe = false;
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,13 +49,16 @@ class MainActivity : ComponentActivity() {
                 Surface(
                     modifier = Modifier
                         .fillMaxSize()
-                        .verticalScroll(rememberScrollState()),
+                        .fillMaxHeight(),
                     color = MaterialTheme.colors.background
                 ) {
-                    val recipes = Recipes();
+                    var recipes = Recipes();
                     val navController = rememberNavController()
                     NavHost(
-                        navController = navController, startDestination = "recipes"
+                        navController = navController, startDestination = "recipes",
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .fillMaxHeight()
                     ) {
 
                         composable("recipes") {
@@ -63,7 +70,8 @@ class MainActivity : ComponentActivity() {
                         composable("recipe") {
                             RecipeScreen(
                                 navController = navController,
-                                recipe = recipes.recipes[recipeId].second
+                                recipe = recipes.recipes[recipeId],
+                                isNewRecipe
                             )
                         }
                     }
@@ -88,7 +96,7 @@ class MainActivity : ComponentActivity() {
                     recipe.imageUri = uri
                 }
             }
-        Column() {
+        Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
             Box() {
                 Column(
                     modifier = Modifier.fillMaxSize(),
@@ -97,28 +105,30 @@ class MainActivity : ComponentActivity() {
                 ) {
 
                     imageUri?.let {
-                        if (Build.VERSION.SDK_INT < 28) {
-                            bitmap = MediaStore.Images
-                                .Media.getBitmap(context.contentResolver, it)
-                        } else {
-                            val source = ImageDecoder.createSource(context.contentResolver, it)
-                            bitmap = ImageDecoder.decodeBitmap(source)
-                        }
-                        Image(
-                            bitmap = bitmap.asImageBitmap(),
-                            contentDescription = "Recipe Picture",
-                            modifier = Modifier
-                                // Clip image to be shaped as a circle
-                                .clip(
-                                    RoundedCornerShape(
-                                        bottomStart = 12.dp,
-                                        topEnd = 0.dp,
-                                        bottomEnd = 12.dp
+                        if (!Uri.EMPTY.equals(imageUri)) {
+                            if (Build.VERSION.SDK_INT < 28) {
+                                bitmap = MediaStore.Images
+                                    .Media.getBitmap(context.contentResolver, it)
+                            } else {
+                                val source = ImageDecoder.createSource(context.contentResolver, it)
+                                bitmap = ImageDecoder.decodeBitmap(source)
+                            }
+                            Image(
+                                bitmap = bitmap.asImageBitmap(),
+                                contentDescription = "Recipe Picture",
+                                modifier = Modifier
+                                    // Clip image to be shaped as a circle
+                                    .clip(
+                                        RoundedCornerShape(
+                                            bottomStart = 12.dp,
+                                            topEnd = 0.dp,
+                                            bottomEnd = 12.dp
+                                        )
                                     )
-                                )
-                                .height(300.dp)
-                                .clickable { if(editMode == true) launcher.launch("image/*") }
-                        )
+                                    .height(300.dp)
+                                    .clickable { if (editMode == true) launcher.launch("image/*") }
+                            )
+                        }
                     }
                 }
                 Row(
@@ -126,15 +136,17 @@ class MainActivity : ComponentActivity() {
                         .fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Button(onClick = { navController.navigate("recipes") },                 modifier = Modifier
-                        // Clip image to be shaped as a circle
-                        .clip(
-                            RoundedCornerShape(
-                                bottomStart = 12.dp,
-                                topEnd = 0.dp,
-                                bottomEnd = 12.dp
+                    Button(
+                        onClick = { navController.navigate("recipes") }, modifier = Modifier
+                            // Clip image to be shaped as a circle
+                            .clip(
+                                RoundedCornerShape(
+                                    bottomStart = 12.dp,
+                                    topEnd = 0.dp,
+                                    bottomEnd = 12.dp
+                                )
                             )
-                        ) ) {
+                    ) {
                         Icon(
                             Icons.Rounded.ArrowBack,
                             contentDescription = "Back to Recipes",
@@ -142,14 +154,14 @@ class MainActivity : ComponentActivity() {
                             modifier = Modifier.size(32.dp)
                         )
                     }
-                    if(editMode == true) {
+                    if (editMode == true) {
                         Button(onClick = { launcher.launch("image/*") }) {
                             Text("Upload Image")
                         }
                     }
                     Button(onClick = { editMode = !editMode!! }) {
                         Icon(
-                            if(editMode == true) Icons.Rounded.Check else Icons.Rounded.Edit,
+                            if (editMode == true) Icons.Rounded.Check else Icons.Rounded.Edit,
                             contentDescription = "Edit Mode",
                             tint = Color.White,
                             modifier = Modifier.size(32.dp)
@@ -159,7 +171,7 @@ class MainActivity : ComponentActivity() {
             }
             Spacer(modifier = Modifier.width(8.dp))
             var name by remember { mutableStateOf(recipe.name) }
-            if(editMode == true){
+            if (editMode == true) {
                 TextField(
                     value = name,
                     onValueChange = {
@@ -168,7 +180,8 @@ class MainActivity : ComponentActivity() {
                     },
                     modifier = Modifier
                         .fillMaxWidth(),
-                    textStyle = MaterialTheme.typography.h5
+                    textStyle = MaterialTheme.typography.h5,
+                    placeholder = {Text("Enter Recipe Name", textAlign = TextAlign.Center)}
                 )
             } else {
                 Text(
@@ -181,41 +194,63 @@ class MainActivity : ComponentActivity() {
 
             Spacer(modifier = Modifier.height(8.dp))
             var description by remember { mutableStateOf(recipe.description) }
-            if(editMode == true){
-            TextField(
-                value = description,
-                onValueChange = {
-                    description = it;
-                    recipe.description = description
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(600.dp)
-            )
-        } else {
-            Text(
-                text = description,
-                modifier = Modifier.padding(horizontal = 12.dp)
-            )
-        }
+            if (editMode == true) {
+                TextField(
+                    value = description,
+                    onValueChange = {
+                        description = it;
+                        recipe.description = description
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(600.dp)
+                )
+            } else {
+                Text(
+                    text = description,
+                    modifier = Modifier.padding(horizontal = 12.dp)
+                )
+            }
         }
 
     }
 
     @Composable
     fun RecipesScreen(navController: NavController, recipes: Recipes) {
-        Column {
-            for (r in recipes.recipes) {
-                val recipe = r.second
-                RecipeCard(
-                    navController, Recipe(
-                        id = recipe.id,
-                        name = recipe.name,
-                        description = recipe.description,
-                        imageUri = recipe.imageUri
+        Scaffold(floatingActionButton = {
+            FloatingActionButton(
+                onClick = {
+                    isNewRecipe = true;
+                    recipeId = recipes.recipes.size;
+                    recipes.recipes.add(
+                        Recipe(
+                            recipeId,
+                            "",
+                            "",
+                            Uri.EMPTY
+                        )
                     )
-                )
-                Divider(thickness = 5.dp)
+                    ; navController.navigate("recipe")
+                },
+                contentColor = Color.White,
+                backgroundColor = MaterialTheme.colors.primaryVariant,
+            ) {
+                Icon(Icons.Filled.Add, "New Recipe")
+            }
+        }
+        ) {
+            Column {
+                for (recipe in recipes.recipes) {
+                    RecipeCard(
+                        navController, Recipe(
+                            id = recipe.id,
+                            name = recipe.name,
+                            description = recipe.description,
+                            imageUri = recipe.imageUri
+                        )
+                    )
+                    Divider(thickness = 5.dp)
+                }
             }
         }
     }
@@ -229,6 +264,7 @@ class MainActivity : ComponentActivity() {
                 .fillMaxWidth()
                 .height(70.dp),
             onClick = {
+                this.isNewRecipe = false;
                 this.recipeId = recipe.id;
                 navController.navigate("recipe")
             }
@@ -239,7 +275,7 @@ class MainActivity : ComponentActivity() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight()
-            ) {
+            ) {  if (!Uri.EMPTY.equals(recipe.imageUri)) {
                 val context = LocalContext.current
                 var bitmap: Bitmap
                 if (Build.VERSION.SDK_INT < 28) {
@@ -262,6 +298,7 @@ class MainActivity : ComponentActivity() {
                         )
                         .width(100.dp)
                 )
+            }
                 Spacer(modifier = Modifier.width(8.dp))
                 Row(
                     modifier = Modifier

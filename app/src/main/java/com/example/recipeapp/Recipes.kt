@@ -4,8 +4,8 @@ import android.net.Uri
 
 class Recipes {
 
-    val recipes = arrayOf(
-        "recipe" to Recipe(
+    val recipes = arrayListOf(
+        Recipe(
             id = 0,
             name = "Chocolate Milkshake",
             description = "2 pumps of chocolate syrup" +
@@ -17,7 +17,7 @@ class Recipes {
                     "\nCherry on Top",
             imageUri = Uri.parse("android.resource://com.example.recipeapp/drawable/chocolatemilkshake")
         ),
-        "recipe" to Recipe(
+        Recipe(
             id = 1,
             name = "Strawberry Milkshake",
             description = "2 pumps of strawberry jam" +
@@ -29,7 +29,7 @@ class Recipes {
                     "\nCherry on Top",
             imageUri = Uri.parse("android.resource://com.example.recipeapp/drawable/strawberrymilkshake")
         ),
-        "recipe" to Recipe(
+        Recipe(
             id = 2,
             name = "Cookie&Cream Milkshake",
             description = "2 scoops of cookie crumbles" +
@@ -41,7 +41,7 @@ class Recipes {
                     "\nCherry on Top",
             imageUri = Uri.parse("android.resource://com.example.recipeapp/drawable/ccmilkshake")
         ),
-        "recipe" to Recipe(
+        Recipe(
             id = 3,
             name = "Vanilla Milkshake",
             description = "Milkshake base to red line" +
@@ -52,7 +52,7 @@ class Recipes {
                     "\nCherry on Top",
             imageUri = Uri.parse("android.resource://com.example.recipeapp/drawable/vanillamilkshake")
         ),
-        "recipe" to Recipe(
+        Recipe(
             id = 4,
             name = "Cookie Crumble Shake",
             description = "1 Chocolate Chip cookie crumbled finely" +
